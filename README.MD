@@ -1,0 +1,5 @@
+G-Code-Ripper (initially developed by Scorch Works) is an auto-levelling software for CNC routers.
+
+Generally, G-Code-Ripper stores its information in system memory, which can easily take up 20 or more gigabytes for even 50KB G-Code files, making it nearly impossible to complete. This custom build writes the necessary information to the hard drives as binary files, so memory usage is minimal, and temporary hard drive space required is only around 2GB for a 50KB input file.
+
+Usage: Start G-Code-Ripper -> File -> Open G-Code File (You won't see the plot on the GUI) -> Save G-Code File - Probe Only  -> Collect probe data on CNC -> Exit/Open G-Code-Ripper -> File -> Open G-Code File -> Read Probe Data File -> File is saved to ./myfile_adjusted.ngc (GUI remains frozen/"Calculating..." and it is safe to close at this point) -> Exit & restart G Code Ripper or Manually delete ./gcr_temp
