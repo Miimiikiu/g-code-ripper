@@ -133,13 +133,13 @@
     
     -Disabled plotting to save memory & time
     
+    -Added MANUAL_PROBE variable for uses whose machines can't write G31 data to file to allow for manual recording
+    
     ## Known Issues
     
     -Only tested on Python 3.8 on Windows x86_64 
     
     -Only tested with Read Probe Data File button
-    
-    -Does not delete temp folder on end
     
     -GUI freezes while reading probe file
     
@@ -2397,6 +2397,9 @@ class Application(Frame):
         for obj_type, size in sorted_objects:
             print(f"{obj_type.__name__}: {size} bytes")
         '''
+        
+        if os.path.exists('./gcr_temp'):
+            print(shutil.rmtree('./gcr_temp'))
         print('INSPECT OUTPUT FILE CAREFULLY BEFORE USE')
         
 
@@ -3283,7 +3286,7 @@ class Application(Frame):
                 print('reading coords_temp.bin')
                 
                 while True:
-                    #TODO: Also here takes up lots of memory (still, as of 8-11-2023 8:11 PM)
+                    #TODO: Also here takes up lots of memory
                     
                     binary_data = infile.read(1)
                     if not binary_data:
