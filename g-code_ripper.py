@@ -144,6 +144,8 @@
     -GUI freezes while reading probe file
     
     -No plots visible
+    
+    
 
 
 """
@@ -191,6 +193,8 @@ import winsound
 Zero      = 0.0000001
 STOP_CALC = 0
 DEDICATED_FILE = True
+MANUAL_PROBE = False #Set to true if your machine can't record the values to a file for some reason. My CNC controller is generic brand and can't handle M40 -> G31 -> M41.
+if MANUAL_PROBE: print('Probing will be manual! Record the value to a new file after each G31. For automatic probing, set MANUAL_PROBE = True')
 
 #Setting QUIET to True will stop almost all console messages
 QUIET = False
@@ -5907,8 +5911,9 @@ class G_Code_Rip:
 
         for line in pre_codes.split('|'):
             g_code.append(line)
-            
-        #g_code.append(datafileopen)	#USER CUSTOM	
+         
+        if not MANUAL_PROBE:    
+            g_code.append(datafileopen)
         max_probe_safe = max(probe_safe,probe_safe+probe_offsetZ)
 
         g_code.append("G0 Z%.3f" %(max_probe_safe))
@@ -5926,7 +5931,8 @@ class G_Code_Rip:
                 
                 g_code.append("G0 X%.3fY%.3f" %(xp+probe_offsetX,yp+probe_offsetY))
                 g_code.append("%s Z%.3f F%.1f" %(Gprobe, probe_depth+probe_offsetZ,probe_feed))
-                g_code.append("M0") #USER CUSTOM
+                if MANUAL_PROBE:
+                    g_code.append("M0")
 
                 if (probe_soft=="DDCS"):
                     g_code.append("M102")
@@ -5945,8 +5951,9 @@ class G_Code_Rip:
 
         g_code.append("G0 Z%.3f" %(max_probe_safe))
         g_code.append("G0 X%.3fY%.3f" %(xp,yp))
-
-        #g_code.append(datafileclose) #USER CUSTOM
+        
+        if not MANUAL_PROBE:
+            g_code.append(datafileclose) #USER CUSTOM
         for line in pause_codes.split('|'):
             g_code.append(line)
 
