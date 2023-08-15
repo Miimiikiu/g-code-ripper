@@ -38,13 +38,13 @@ Generally, G-Code-Ripper stores its information in system memory, which can easi
 
 -Disabled plotting to save memory & time
 
+-Added MANUAL_PROBE variable for uses whose machines can't write G31 data to file to allow for manual recording
+
 ## Known Issues
 
 -Only tested on Python 3.8 on Windows x86_64 
 
 -Only tested with Read Probe Data File button
-
--Does not delete temp folder on end
 
 -GUI freezes while reading probe file
 

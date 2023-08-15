@@ -193,7 +193,7 @@ import winsound
 Zero      = 0.0000001
 STOP_CALC = 0
 DEDICATED_FILE = True
-MANUAL_PROBE = False #Set to true if your machine can't record the values to a file for some reason. My CNC controller is generic brand and can't handle M40 -> G31 -> M41.
+MANUAL_PROBE = True #Set to True if your machine can't record the values to a file for some reason. My CNC controller is generic brand and can't handle M40 -> G31 -> M41.
 if MANUAL_PROBE: print('Probing will be manual! Record the value to a new file after each G31. For automatic probing, set MANUAL_PROBE = True')
 
 #Setting QUIET to True will stop almost all console messages
@@ -1334,10 +1334,10 @@ class Application(Frame):
         input_probe_data = []
         line_number = 0
         for line in fin:
-            print('dataline: {}'.format(line))
+            #print('dataline: {}'.format(line))
             line_number = line_number+1
             if len(line.split("#")) > 1:
-                line = line.split("#")[0]
+                line = line.split("#")[0] # comment
             if len(line.split("//")) > 1:
                 line = line.split("//")[0]
                 
@@ -1358,18 +1358,20 @@ class Application(Frame):
                 
             if len(values_text) == 0:
                     continue
+            #print('values_text:{}'.format(values_text))
                 
             data_line = []
             if (len(values_text)<3):
                 fmessage("Error reading probe data file: %s" %(filename))
-                fmessage("Less than three coordinates found for probe point.")
+                fmessage("Less than three coordinates found for probe point.") #Requires X, Y, Z
                 fmessage("Input line #%d: %s" %(line_number,line))
                 continue
                 #return
-            for cnt in range(0,3):
+            for cnt in range(0,3): # for x, y, z
                 try:
                     value_text_mod= re.sub('[ XYZxyzABCabc]', '', values_text[cnt])
                     data_line.append(float(value_text_mod))
+                    #print('new data_line:{}'.format(data_line)) # appends [my_XValue, my_YValue, my_ZValue] as a list of floats
                     #data_line.append(float(values_text[cnt]))
                 except:
                     fmessage("Error reading probe data file: %s" %(filename))
@@ -1378,6 +1380,7 @@ class Application(Frame):
                     #print value_text_mod
                     return
             input_probe_data.append(data_line)
+            #print('new input_probe_data:{}'.format(input_probe_data))
         fin.close()
         print('closed file')
 
@@ -1394,6 +1397,9 @@ class Application(Frame):
         probe_maxx = probe_data_sortX[len_probe_data-1][0]
         probe_miny = probe_data_sortY[0][1]
         probe_maxy = probe_data_sortY[len_probe_data-1][1]
+        
+        #print('probe_data_sortX: {}'.format(probe_data_sortX))
+        #print('probe_data_sortY: {}'.format(probe_data_sortY))
         
 
         #Set arbitrary maximum number of divisions to prevent superfine mesh
@@ -1429,7 +1435,9 @@ class Application(Frame):
         self.probe_data = []
         print('appending to self.probe_data...')
         for Y in range(0,nY):
+            #print('Y:{}'.format(Y))
             for X in range(0,nX):
+                #print('X:{}'.format(X))
                 Xpos = probe_minx + X*min_delta_x
                 Ypos = probe_miny + Y*min_delta_y
                 
@@ -1442,6 +1450,7 @@ class Application(Frame):
                         min_dsquared = dsquared
                         Zpos = probxy[2]
                 self.probe_data.append([Xpos,Ypos,Zpos])
+        print('probe_data:{}'.format(self.probe_data))
         print('finished appending to self.probe_data')
         print('Calling DoIt() from File_Read_Probe_Data')
                     
