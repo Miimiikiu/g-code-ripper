@@ -28,7 +28,7 @@ Generally, G-Code-Ripper stores its information in system memory, which can easi
 
 ### manual_probe_generator.py
 
-The probe files generated from g-code-ripper often probe outside of the stock due to lead-ins in the g code, so manual_probe_generator.py accepts the raw stock dimensions and leaves a buffer for safety. While probing, record the z values in stock_probe_W_**_L_**_data.txt. You can now use this instead of steps 1-3.
+The probe files generated from g-code-ripper often probe outside of the stock due to lead-ins in the g code, so manual_probe_generator.py accepts the raw stock dimensions and leaves a buffer for safety. While probing, record the z values in stock_probe_W_xx_L_yy_data.txt. You can now use this instead of steps 1-3.
 
 ## Changes from Version 0.22
 
