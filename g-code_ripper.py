@@ -99,7 +99,10 @@
     
     G-Code-Ripper (originally developed by Scorch Works) is an auto-levelling software for CNC routers.
     
-    Generally, G-Code-Ripper stores its information in system memory, which can easily take up 20 or more gigabytes for even 50KB G-Code files, making it nearly impossible to complete. This custom build writes the necessary information to the hard drives as binary files, so memory usage is minimal, and temporary hard drive space required is only around 2GB for a 50KB input file.
+    Generally, G-Code-Ripper stores its information in system memory, which can easily take up 20 or more gigabytes 
+    for even 50KB G-Code files using 3x3 probe points, making it nearly impossible to complete. This custom build 
+    writes the necessary information to the hard drives as binary files, so memory usage is minimal, and temporary 
+    hard drive space required is only around 2GB for a 50KB input file using 3x3 probing points.
     
     ## Usage
     
@@ -109,7 +112,7 @@
     
     3. Save G-Code File - Probe Only  
     
-    4. Collect probe data on CNC 
+    4. Collect probe data on CNC (manual option now available)
     
     5. Exit/Open G-Code-Ripper 
     
@@ -117,19 +120,18 @@
     
     7. Read Probe Data File 
     
-    8. File is automatically saved to ./myfile_adjusted.ngc (GUI remains frozen/"Calculating..." and it is safe to close at this point) 
+    8. File is automatically saved to ./myfile_adjusted.ngc (GUI may remain frozen/"Calculating..." and it is safe to close at this point)     
     
-    9. Remove temp folder: Exit & restart G Code Ripper, then exit. Or Manually delete ./gcr_temp
     
     ## Changes from Version 0.22
     
-    -Replaced large lists with writing binaries to ./gcr_temp to save memory (~2GB free storage space required for a 50KB original G Code file)
+    -Replaced large lists with writing binaries to ./gcr_temp to save memory (~2GB free storage space required for a 50KB original G Code file using 3x3 probe points)
     
     -Deletes & replaces ./gcr_temp on restart
     
     -Set default operation to probe
     
-    -Read Probe also saves adjusted g code file as a workaround to GUI freezing after reading probe file
+    -Read Probe also saves adjusted g code file as a workaround to GUI freezing after reading probe file on some systems
     
     -Disabled plotting to save memory & time
     
@@ -139,9 +141,9 @@
     
     -Only tested on Python 3.8 on Windows x86_64 
     
-    -Only tested with Read Probe Data File button
+    -Only tested with Read Probe Data File and Probe Only buttons, not Probe & Cut
     
-    -GUI freezes while reading probe file
+    -GUI freezes while reading probe file on some systems
     
     -No plots visible
     
@@ -1137,7 +1139,7 @@ class Application(Frame):
         config.append('(g-code_ripper_set NGC_OUTPUT \042%s\042 )' %( self.NGC_OUTPUT ))
         config.append("(=========================================================)")
         
-        configname_full   = os.path.expanduser("G:/My Drive/NC Files")+"/"+self.config_file
+        configname_full   = os.path.expanduser("G:/My Drive/NC Files")+"/"+self.config_file #TODO: GENERALIZE USER ADJUSTED PATH
 
         current_name = event.widget.winfo_parent()
         win_id = event.widget.nametowidget(current_name)
@@ -1430,6 +1432,8 @@ class Application(Frame):
         nY = int(1+round(Ysize/min_delta_y)) 
         self.probe_nX.set(nX)
         self.probe_nY.set(nY)
+        print('new nx: {}'.format(nX))
+        print('new ny: {}'.format(nY))
 
         large_dist_squared = Xsize*Xsize + Ysize*Ysize
         self.probe_data = []
@@ -2196,6 +2200,7 @@ class Application(Frame):
         
         fileName, fileExtension = os.path.splitext(filename)
         init_file=os.path.basename(fileName)
+
         if init_file != "None":
             MSG = self.g_rip.Read_G_Code(filename,
                                          XYarc2line = Arc2Line,
@@ -2264,11 +2269,7 @@ class Application(Frame):
         self.File_Save_G_Code_File_Auto('probe_adjusted')
         print('Adjusted file saved!')
         winsound.Beep(2500, 1000)
-        time.sleep(1)
-        winsound.Beep(2500, 1000)
-        time.sleep(1)
-        winsound.Beep(2500, 1000)
-        time.sleep(1)
+
 
 
     def menu_Clear_Probe_data(self,junk=""):
@@ -3295,7 +3296,7 @@ class Application(Frame):
                 print('reading coords_temp.bin')
                 
                 while True:
-                    #TODO: Also here takes up lots of memory
+                    #TODO: Also here takes up lots of memory when plotting
                     
                     binary_data = infile.read(1)
                     if not binary_data:
@@ -5267,15 +5268,7 @@ class G_Code_Rip:
                                 Yfraction = 0.0
             
                             BPN=500
-                            '''
-                            out[i][1].append(p_index_A+BPN) # append to pos_prev
-                            out[i][1].append(p_index_B+BPN)
-                            out[i][1].append(p_index_C+BPN)
-                            out[i][1].append(p_index_D+BPN)
-                            out[i][1].append(Xfraction)
-                            out[i][1].append(Yfraction)
-                            '''
-                            
+
                             #print('\nLine[1] before: {}'.format(line[1]))
                             line[1].append(p_index_A+BPN) # append to pos_prev
                             line[1].append(p_index_B+BPN)
@@ -5315,7 +5308,7 @@ class G_Code_Rip:
                             p_index_B =  int(i_y2*nX + i_x )
                             p_index_C =  int(i_y *nX + i_x2)
                             p_index_D =  int(i_y2*nX + i_x2)
-                            Xfraction=((pos[0]-minx)-(i_x*xPartitionLength))/xPartitionLength
+                            Xfraction=((pos[0]-minx)-(i_x*xPartitionLength))/xPartitionLength #offset from left
                             Yfraction=((pos[1]-miny)-(i_y*yPartitionLength))/yPartitionLength
                             
                             if Xfraction>1.0:
@@ -5330,17 +5323,9 @@ class G_Code_Rip:
                             if Yfraction<0.0:
                                 Yfraction = 0.0
                                 #print "ERROR POS: Yfraction = ", Yfraction
-                            '''    
-                            out[i][2].append(p_index_A+BPN) # append to pos
-                            out[i][2].append(p_index_B+BPN)
-                            out[i][2].append(p_index_C+BPN)
-                            out[i][2].append(p_index_D+BPN)
-                            out[i][2].append(Xfraction)
-                            out[i][2].append(Yfraction)
-                            '''
-                            
+
                             #print('Line[2] before: {}'.format(line[2]))
-                            line[2].append(p_index_A+BPN) # append to pos
+                            line[2].append(p_index_A+BPN) # append point index + 500 to pos for some reason
                             line[2].append(p_index_B+BPN)
                             line[2].append(p_index_C+BPN)
                             line[2].append(p_index_D+BPN)
@@ -5632,7 +5617,7 @@ class G_Code_Rip:
             for i in range(len(POINT_LIST)):
                 i_x = i % nX
                 i_y = int(i / nX)
-                xp  = i_x * xPartitionLength + minx
+                xp  = i_x * xPartitionLength + minx #Assumes consistent dx & dy
                 yp  = i_y * yPartitionLength + miny
                 probe_coords.append([POINT_LIST[i],i+BPN,xp,yp])
     
@@ -6046,7 +6031,6 @@ class G_Code_Rip:
                 if point_data[2] > Z_probe_max:
                     Z_probe_max=point_data[2]
 
-        #TODO: read probe_gcode.bin for side
 
         
         
